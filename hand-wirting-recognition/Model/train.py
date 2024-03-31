@@ -1,5 +1,7 @@
 import tensorflow as tf
 
+from mltu.tensorflow.dataProvider import DataProvider
+
 try:
     [tf.config.experimental.set_memory_growth(gpu, True) for gpu in tf.config.experimental.list_physical_devices("GPU")]
 except:
@@ -12,7 +14,6 @@ from mltu.transformers import ImageResizer, LabelIndexer, LabelPadding, ImageSho
 from mltu.augmentors import RandomBrightness, RandomRotate, RandomErodeDilate, RandomSharpen
 from mltu.annotations.images import CVImage
 
-from mltu.tensorflow.dataProvider import DataProvider
 from mltu.tensorflow.losses import CTCloss
 from mltu.tensorflow.callbacks import Model2onnx, TrainLogger
 from mltu.tensorflow.metrics import CERMetric, WERMetric
@@ -80,6 +81,7 @@ data_provider = DataProvider(
 # Split the dataset into training and validation sets
 train_data_provider, val_data_provider = data_provider.split(split=0.9)
 
+
 # Augment training data with random brightness, rotation and erode/dilate
 train_data_provider.augmentors = [
     RandomBrightness(),
@@ -107,12 +109,12 @@ model.summary(line_length=110)
 
 # Define callbacks
 earlystopper = EarlyStopping(monitor="val_CER", patience=20, verbose=1, mode="min")
-checkpoint = ModelCheckpoint(f"{configs.model_path}/model.h5", monitor="val_CER", verbose=1, save_best_only=True,
+checkpoint = ModelCheckpoint(f"{configs.model_path}/model.keras", monitor="val_CER", verbose=1, save_best_only=True,
                              mode="min")
 trainLogger = TrainLogger(configs.model_path)
 tb_callback = TensorBoard(f"{configs.model_path}/logs", update_freq=1)
 reduceLROnPlat = ReduceLROnPlateau(monitor="val_CER", factor=0.9, min_delta=1e-10, patience=5, verbose=1, mode="auto")
-model2onnx = Model2onnx(f"{configs.model_path}/model.h5")
+model2onnx = Model2onnx(f"{configs.model_path}/model.keras")
 
 # Train the model
 model.fit(
@@ -120,8 +122,9 @@ model.fit(
     validation_data=val_data_provider,
     epochs=configs.train_epochs,
     callbacks=[earlystopper, checkpoint, trainLogger, reduceLROnPlat, tb_callback, model2onnx],
-    workers=configs.train_workers
+    # workers=configs.train_workers
 )
+
 
 # Save training and validation datasets as csv files
 train_data_provider.to_csv(os.path.join(configs.model_path, "train.csv"))

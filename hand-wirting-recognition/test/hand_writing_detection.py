@@ -18,7 +18,7 @@ def deskew_process(image):
     return rotated
 
 
-image_deskew = deskew_process("https://res.cloudinary.com/ddmdpbsoc/image/upload/v1699067366/SellingCourses/gydo0mr0bay02l80jqkr.jpg")
+image_deskew = deskew_process("img_3.png")
 # save the rotated image to a imagae .png file
 io.imsave("output_deskewed.png", image_deskew.astype(np.uint8))
 
@@ -44,7 +44,7 @@ cv2.imwrite("output_processed.png", processed_img)
 
 ground_truth = """xin CHAO"""
 
-hypothesis = pytesseract.image_to_string("output_processed.png")
+hypothesis = pytesseract.image_to_string("output_deskewed.png")
 print("CER, WER, Rate :",cer(ground_truth, hypothesis),wer(ground_truth, hypothesis),fuzz.ratio(ground_truth, hypothesis))
 print(hypothesis)
 
